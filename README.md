@@ -9,6 +9,13 @@ Jenkins Java Rest API Module
 
 ## 사용방법
 
+### 주의사항
+
+혹시나 403이 발생하는 분들은 젠킨스의 CORS 문제때문입니다.  
+젠킨스의 Global Security에서 CORS 체크박스를 해제해야만 사용가능합니다.  
+
+![cors](./images/cors.png)
+
 ### Job Parameter 없을 경우
 
 ```java
