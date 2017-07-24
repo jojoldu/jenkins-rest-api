@@ -17,14 +17,12 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class RequestEntity {
 
-    private static final String URL_TEMPLATE = "/job/{jobName}/buildWithParameters?";
-
     private String host;
     private String jobName;
     private String username;
     private String token;
 
-    List<NameValue> parameter = new ArrayList<>();
+    List<NameValue> parameters = new ArrayList<>();
 
     public RequestEntity(String host, String jobName, String username, String token) {
         this.host = host;
@@ -34,7 +32,7 @@ public class RequestEntity {
     }
 
     public void add(NameValue nameValue) {
-        parameter.add(nameValue);
+        parameters.add(nameValue);
     }
 
     public String createUrl(){
@@ -50,11 +48,15 @@ public class RequestEntity {
             throw new JenkinsExecuteException("jobName is Empty");
         }
 
-        return URL_TEMPLATE.replaceAll("\\{jobName\\}", jobName);
+        if(parameters.isEmpty()){
+            return UrlPath.BUILD.exchange(jobName);
+        } else {
+            return UrlPath.BUILD_WITH_PARAMETER.exchange(jobName);
+        }
     }
 
     private String toRequestParam() {
-        return parameter.stream()
+        return parameters.stream()
                 .map(p -> p.getName()+"="+p.getValue())
                 .collect(Collectors.joining("&"));
     }

@@ -3,7 +3,7 @@ package com.github.jojoldu.jenkins;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.client.ClientConfig;
 
@@ -11,9 +11,9 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Created by dwlee on 2017. 4. 27..
@@ -26,25 +26,29 @@ public class JenkinsConnector {
 
     public String executeJob(RequestEntity requestEntity){
         final String REQUEST_URL = requestEntity.createUrl();
+        final String CREDENTIALS = createCredentials(requestEntity.getUsername(), requestEntity.getToken());
 
         try{
             Response response = createWebTarget(REQUEST_URL)
                     .request(MediaType.APPLICATION_JSON_TYPE)
-                    .header("charset", "UTF-8")
-                    .header("Authorization", createCredentials(requestEntity.getUsername(), requestEntity.getToken()))
+                    .header(HttpHeaders.AUTHORIZATION, CREDENTIALS)
                     .post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE), Response.class);
 
             String responseBody = response.readEntity(String.class);
 
-            if(response.getStatus() != 200){
+            if(isFailed(response)){
                 throw new JenkinsExecuteException("Translate Request Exception : "+ responseBody);
             }
 
             return responseBody;
         }catch(Exception e){
-            String message = "Jenkins Execute Exception \nRequest URL : "+REQUEST_URL+"\nException Message: "+e.getMessage();
+            String message = "Jenkins Execute Exception \nRequest URL : "+REQUEST_URL+"\ncredentials : "+CREDENTIALS+"\nException Message: "+e.getMessage();
             throw new JenkinsExecuteException(message);
         }
+    }
+
+    private boolean isFailed(Response response) {
+        return !String.valueOf(response.getStatus()).startsWith("2");
     }
 
     private WebTarget createWebTarget(String url) {

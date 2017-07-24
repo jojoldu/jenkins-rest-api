@@ -22,4 +22,15 @@ public class JenkinsConnectorTest {
 
         jenkinsConnector.executeJob(requestEntity);
     }
+
+    @Test
+    public void 로컬젠킨스_JOB_실행_파라미터포함() throws Exception {
+        RequestEntity requestEntity = new RequestEntity(HOST, JOB, USERNAME, TOKEN);
+        requestEntity.add(new NameValue("name", "jojoldu"));
+        requestEntity.add(new NameValue("email", "jojoldu@gmail.com"));
+
+        JenkinsConnector jenkinsConnector = new JenkinsConnector();
+
+        jenkinsConnector.executeJob(requestEntity);
+    }
 }
